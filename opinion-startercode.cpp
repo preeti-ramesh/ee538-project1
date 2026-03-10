@@ -26,24 +26,71 @@ std::vector<std::vector<int>> edge_list;
 
 void build_adj_matrix()
 {
-    
+    adj = vector<vector<int>>(total_nodes, vector<int>(total_nodes, 0));
+
+    for (int i = 0; i < edge_list.size(); i++)
+    {
+        int source = edge_list[i][0];
+        int target = edge_list[i][1];
+        adj[source][target] = 1;
+    }
 }
 
 double calculate_fraction_of_ones()
 {
-   
+    int count = 0;
+
+    for (int i = 0; i < total_nodes; i++)
+    {
+        if (opinions[i] == 1)
+            count++;
+    }
+
+    return (double)count / total_nodes;
 }
 
 // For a given node, count majority opinion among its neighbours. Tie -> 0.
 int get_majority_friend_opinions(int node)
 {
+    int count0 = 0;
+    int count1 = 0;
 
+    for (int i = 0; i < total_nodes; i++)
+    {
+        if (adj[i][node] == 1)
+        {
+            if (opinions[i] == 0)
+                count0++;
+            else
+                count1++;
+        }
+    }
+
+    if (count1 > count0)
+        return 1;
+    else
+        return 0;   // tie → 0
 }
 
 // Calculate new opinions for all voters and return if anyone's opinion changed
 bool update_opinions()
 {
+    vector<int> new_opinions = opinions;
+    bool changed = false;
 
+    for (int i = 0; i < total_nodes; i++)
+    {
+        int majority = get_majority_friend_opinions(i);
+
+        if (majority != opinions[i])
+        {
+            new_opinions[i] = majority;
+            changed = true;
+        }
+    }
+
+    opinions = new_opinions;
+    return changed;
 }
 
 int main() {
@@ -68,7 +115,15 @@ int main() {
          << calculate_fraction_of_ones() << endl;
     
     /// (6)  //////////////////////////////////////////////
-    
+    while (iteration < max_iterations && opinions_changed)
+{
+    opinions_changed = update_opinions();
+    iteration++;
+
+    cout << "Iteration " << iteration 
+         << ": fraction of 1's = "
+         << calculate_fraction_of_ones() << endl;
+}
 
     ////////////////////////////////////////////////////////
     // Print final result
